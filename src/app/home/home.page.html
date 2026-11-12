@@ -1,21 +1,138 @@
-<ion-header [translucent]="true">
+<ion-header class="app-header">
   <ion-toolbar>
-    <ion-title> Blank </ion-title>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">S</div>
+      <div>
+        <span class="brand-name">SensorLab</span>
+        <span class="brand-caption">LABORATORIO DE MOVIMIENTO</span>
+      </div>
+    </div>
+    <ion-title class="visually-hidden">Acelerómetro</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="dashboard" [fullscreen]="true">
+  <div class="dashboard-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> SENSOR INERCIAL</span>
+        <h1>Tu movimiento,<br /><span>en datos.</span></h1>
+        <p>Explora la aceleración de tu dispositivo en tiempo real. Muévelo y descubre qué sucede en cada eje.</p>
+      </div>
+      <div class="hero-graphic" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="orbit orbit-three"></div>
+        <div class="graphic-core"><span>3</span><small>EJES</small></div>
+        <span class="axis-label axis-x">X</span>
+        <span class="axis-label axis-y">Y</span>
+        <span class="axis-label axis-z">Z</span>
+      </div>
+    </section>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>
-      Start with Ionic
-      <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a>
-    </p>
+    <section class="status-panel" aria-label="Control del sensor">
+      <div class="status-info">
+        <span class="status-indicator" [class.is-active]="activo"></span>
+        <div>
+          <span class="section-label">ESTADO DEL SENSOR</span>
+          <strong>{{ estado }}</strong>
+        </div>
+      </div>
+      <div class="status-actions">
+        <ion-button class="start-button" [disabled]="activo" (click)="iniciarSensor()">
+          <span class="button-icon" aria-hidden="true">+</span>
+          Iniciar sensor
+        </ion-button>
+        <ion-button class="stop-button" fill="outline" [disabled]="!activo" (click)="detenerSensor()">
+          Detener
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">LECTURA EN VIVO</span>
+        <h2>Datos del acelerómetro</h2>
+      </div>
+      <span class="live-tag" [class.is-active]="activo"><span></span>{{ activo ? 'LIVE' : 'EN ESPERA' }}</span>
+    </div>
+
+    <section class="metrics-grid" aria-label="Mediciones en tiempo real">
+      <article class="metric-card axis-card axis-x-card">
+        <div class="metric-top">
+          <span class="axis-symbol">X</span>
+          <span class="metric-axis">EJE X</span>
+        </div>
+        <div class="metric-reading">{{ x | number:'1.2-2' }}<small>m/s²</small></div>
+        <ion-progress-bar color="primary" [value]="obtenerProgreso(x)"></ion-progress-bar>
+        <div class="metric-scale"><span>ACELERACIÓN</span><span>{{ x < 0 ? '−' : '+' }}</span></div>
+      </article>
+
+      <article class="metric-card axis-card axis-y-card">
+        <div class="metric-top">
+          <span class="axis-symbol">Y</span>
+          <span class="metric-axis">EJE Y</span>
+        </div>
+        <div class="metric-reading">{{ y | number:'1.2-2' }}<small>m/s²</small></div>
+        <ion-progress-bar color="secondary" [value]="obtenerProgreso(y)"></ion-progress-bar>
+        <div class="metric-scale"><span>ACELERACIÓN</span><span>{{ y < 0 ? '−' : '+' }}</span></div>
+      </article>
+
+      <article class="metric-card axis-card axis-z-card">
+        <div class="metric-top">
+          <span class="axis-symbol">Z</span>
+          <span class="metric-axis">EJE Z</span>
+        </div>
+        <div class="metric-reading">{{ z | number:'1.2-2' }}<small>m/s²</small></div>
+        <ion-progress-bar color="tertiary" [value]="obtenerProgreso(z)"></ion-progress-bar>
+        <div class="metric-scale"><span>ACELERACIÓN</span><span>{{ z < 0 ? '−' : '+' }}</span></div>
+      </article>
+
+      <article class="metric-card magnitude-card">
+        <div class="metric-top">
+          <span class="magnitude-symbol" aria-hidden="true">∑</span>
+          <span class="metric-axis">MAGNITUD TOTAL</span>
+        </div>
+        <div class="metric-reading">{{ magnitud | number:'1.2-2' }}<small>m/s²</small></div>
+        <p>√(X² + Y² + Z²)</p>
+      </article>
+    </section>
+
+    <section class="insights-grid">
+      <article class="insight-card movement-card">
+        <div class="insight-heading">
+          <div>
+            <span class="section-label">ACTIVIDAD</span>
+            <h2>Movimientos bruscos</h2>
+          </div>
+          <span class="insight-icon movement-icon" aria-hidden="true">↗</span>
+        </div>
+        <div class="movement-count">{{ movimientos }} <small>detectados</small></div>
+        <p>Se registra un movimiento al superar los 15 m/s².</p>
+        <ion-button class="text-button" fill="clear" (click)="reiniciarContador()"
+          >Reiniciar contador <span aria-hidden="true">↻</span></ion-button
+        >
+      </article>
+
+      <article class="insight-card tilt-card">
+        <div class="insight-heading">
+          <div>
+            <span class="section-label">ORIENTACIÓN</span>
+            <h2>Detección de inclinación</h2>
+          </div>
+          <span class="insight-icon tilt-icon" aria-hidden="true">⌁</span>
+        </div>
+        <ion-chip class="tilt-chip" color="primary">{{ detectarInclinacion() }}</ion-chip>
+        <p>Inclina el teléfono para observar cómo cambia la dirección predominante.</p>
+      </article>
+    </section>
+
+    <footer class="footnote">
+      <span class="footnote-icon" aria-hidden="true">i</span>
+      <p>
+        Para obtener lecturas precisas, prueba en un teléfono físico. La disponibilidad depende del dispositivo y sus
+        permisos.
+      </p>
+    </footer>
   </div>
 </ion-content>
